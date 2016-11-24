@@ -1,27 +1,51 @@
-web:
-  build: .
-  command: php -S 0.0.0.0:8000 -t /app
-  links:
-    - db
-  ports:
-    - "8000:8000"
-  volumes:
-    - ./app:/app
-db:
-  image: mysql
-  ports:
-    - "3306:3306"
+###############################################################################
+#                          Generated on phpdocker.io                          #
+###############################################################################
+
+np-redis:
+  image: phpdockerio/redis:latest
+  container_name: np-redis
+
+np-mysql:
+  image: mysql:5.7
+  container_name: np-mysql
   environment:
-    MYSQL_ROOT_PASSWORD: 123456
-    MYSQL_USER: dev
-    MYSQL_PASSWORD: 123456
-    MYSQL_DATABASE: myapp
-phpmy:
-  image: corbinu/docker-phpmyadmin
+    - MYSQL_ROOT_PASSWORD=root
+    - MYSQL_DATABASE=appdb
+    - MYSQL_USER=root
+    - MYSQL_PASSWORD=root
+  volumes:
+    - ./db:/var/lib/mysql
+
+np-webserver:
+  image: phpdockerio/nginx:latest
+  container_name: np-webserver
+  volumes:
+      - ./app:/var/www/np
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+  ports:
+   - "7000:80"
   links:
-    - db:mysql
+   - np-php-fpm
+
+np-php-fpm:
+  build: .
+  dockerfile: php-fpm/Dockerfile
+  container_name: np-php-fpm
+  volumes:
+    - ./app:/var/www/np
+    - ./php-fpm/php-ini-overrides.ini:/etc/php/7.0/fpm/conf.d/99-overrides.ini
+  links:
+    - np-mysql
+    - np-redis
+
+np-phpmy:
+  image: corbinu/docker-phpmyadmin
+  container_name: np-phpmyadmin
+  links:
+    - np-mysql:mysql
   ports:
     - 8181:80
   environment:
-    MYSQL_USERNAME: dev
-    MYSQL_ROOT_PASSWORD: 123456
+    MYSQL_USERNAME: root
+    MYSQL_ROOT_PASSWORD: root
