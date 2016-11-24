@@ -7,6 +7,7 @@ modify docker-compose.yml to your needs
 ```
 docker-compose up -d
 ```
-your application needs to be in app directory. php files are server from app/public directory
+your application needs to be in app directory. 
+Php files are served from app/public directory
 
 
